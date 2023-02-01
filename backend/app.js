@@ -1,14 +1,31 @@
 const express = require("express");
-const mongoose = require('mongoose');
+// const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+
+const stuffRoutes = require("./routes/stuff");
+const userRoutes = require("./routes/user");
+
 const app = express();
 
-mongoose.connect("mongodb+srv://issou:8383@cluster0.k4dphx2.mongodb.net/?retryWrites=true&w=majority",{
-    useNewUrlParser: true, 
-    useUnifiedTopology: true 
-})
+mongoose.connect("mongodb+srv://issou:8383@cluster0.k4dphx2.mongodb.net/?retryWrites=true&w=majority",
+    { useNewUrlParser: true, useUnifiedTopology: true }
+  )
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch(() => console.log("Connexion à MongoDB échouée !"));
+/*Ce middleware sert à intercepeter toutes les requètes qui ont un content-type: json, 
+et nous met à dispodition celui-ci sur l'objet requète dans req.body*/
+app.use(express.json());
+//Une ancienne methode: 'body.parser'
 
+/*Accés à l'API depuis n'importe où/Ajouter les headers mentionnés aux requètes envoyées vers notre API/
+Envoyer des requétes avec les methodes GET, POST, ETC....
+
+Methode qui permet d'empecher les erreurs CORS: bloque les appels HTTP entre des serveurs différents, 
+ce qui empêche donc les requêtes 
+malveillantes d'accéder à des ressources sensibles. 
+Dans notre cas, nous avons deux origines : localhost:3000 et localhost:4200 , 
+et nous souhaiterions qu'elles puissent communiquer entre elles. Pour cela, nous devons ajouter 
+des headers à notre objet  response*/
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -23,33 +40,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/api/stuff", (req, res, next) => {
-  console.log(req.body);
-  res.status(201).json({ message: "Objet créé !" });
-});
+// app.use(bodyParser.json());
 
-app.get("/api/stuff", (req, res, next) => {
-  const stuff = [
-    {
-      _id: "oeihfzeoi",
-      title: "Mon premier objet",
-      description: "Les infos de mon premier objet",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 4900,
-      userId: "qsomihvqios",
-    },
-    {
-      _id: "oeihfzeomoihi",
-      title: "Mon deuxième objet",
-      description: "Les infos de mon deuxième objet",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      price: 2900,
-      userId: "qsomihvqios",
-    },
-  ];
-  res.status(200).json(stuff);
-});
+app.use("/api/stuff", stuffRoutes);
+app.use("/api/auth", userRoutes);
 
 module.exports = app;
